@@ -1,9 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthContext";
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { setUser } = useAuth(); 
   const [error, setError] = useState("");
   const [userData, setuserData] = useState({
     name: "",
@@ -19,16 +21,18 @@ function RegisterPage() {
     e.preventDefault();
     try {
       await axios.post("http://localhost:5000/register", userData);
+      setUser({ name: userData.name, email: userData.email });
+      setuserData({ name: "", email: "", password: "" });
       navigate("/MyNotes");
     } catch (err) {
-      setError(err.response?.data?.error || "Login failed");
+      setError(err.response?.data?.error || "Registration failed"); 
     }
   };
 
   return (
      <div className="register-container">
-      <h2>Create an Account</h2>
       <form className="register-form" onSubmit={handleSubmit}>
+        <h2>Create an Account</h2>
         <input
           type="text"
           name="name"

@@ -2,6 +2,7 @@ import { useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import Fab from '@mui/material/Fab';
 import Zoom from '@mui/material/Zoom';
+import axios from "axios";
 
 function CreateArea(props) {
   const [note, setNote] = useState({
@@ -20,13 +21,21 @@ function CreateArea(props) {
     });
   }
 
-  function submitNote(event) {
-    props.onAdd(note);
-    setNote({
-      title: "",
-      content: ""
-    });
+async function submitNote(event) {
     event.preventDefault();
+    if (!props.userId) return;
+    try {
+      const res = await axios.post("http://localhost:5000/notes", {
+        userId: props.userId,
+        title: note.title,
+        content: note.content
+      });
+      props.onAdd(res.data);
+      setNote({ title: "", content: "" });
+    } catch (err) {
+      console.error("Error adding note:", err);
+      alert("Failed to add note.");
+    }
   }
  function handleExpand(){
      setExpand(true);
@@ -55,5 +64,4 @@ function CreateArea(props) {
     </div>
   );
 }
-
 export default CreateArea;

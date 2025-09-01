@@ -1,10 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { useAuth } from "../Context/AuthContext";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { setUser } = useAuth(); 
   const [error, setError] = useState("");
   const[userData,setUserData]=useState({email:"",password:""});
 
@@ -20,9 +21,10 @@ function LoginPage() {
   const handleSubmit=async (event)=>{
      event.preventDefault();
       try {
-      await axios.post("http://localhost:5000/login", userData);
+      const res = await axios.post("http://localhost:5000/login", userData);
+      setUser(res.data.user); 
       setUserData({ email: "", password: "" }); 
-      navigate("/MyNotes");
+      navigate("/mynotes");
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || "Login failed");
@@ -42,5 +44,4 @@ function LoginPage() {
     </div>
   );
 }
-
 export default LoginPage;

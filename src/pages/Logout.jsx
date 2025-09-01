@@ -1,11 +1,16 @@
+import { useEffect } from "react";
+import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
-function LogoutPage() {
-  
-  return (
-    <div>
-      <h2>Logging out...</h2>
-    </div>
-  );
+export default function LogoutPage() {
+  const { setUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setUser(null);     
+    navigate("/"); 
+  }, []);
+
+  return (<></>
+    ); 
 }
-
-export default LogoutPage;
