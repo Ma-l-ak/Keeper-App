@@ -14,7 +14,6 @@ body {
 }
 
 /* header {
-  
   background-color: #f5ba13;
   margin: auto -16px;
   padding: 16px 32px;
@@ -25,6 +24,9 @@ header {
   background-color: #f5ba13;
   padding: 16px 32px;
   box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: space-between; /* pushes title left, nav right */
+  align-items: center;
 }
 
 header h1 {
@@ -42,7 +44,8 @@ footer {
 }
 
 footer p {
-  color: #ccc;
+  color: #fff;
+  margin: 5px;
 }
 .note {
   background: #fff;
@@ -108,4 +111,126 @@ form.create-note button {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   outline: none;
+}
+
+/* kmlkm */
+header .nav-links a {
+  color: white;
+  text-decoration: none;
+  margin: 0px;
+  font-weight: 500;
+}
+
+header .nav-links a:hover {
+  text-decoration: underline;
+}
+.nav-links .separator {
+  color: white;
+  margin: 10px;
+  font-weight: 500px;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh; /* center vertically */
+}
+
+.login-card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.1);
+  width: 300px;
+  text-align: center;
+}
+
+.login-card h2 {
+  color: #f5ba13; /* Keeper yellow accent */
+  margin-bottom: 20px;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-card input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.login-card input:focus {
+  border-color: #f5ba13;
+}
+
+.login-card button {
+  background: #f5ba13;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.login-card button:hover {
+  background: #e4a90c;
+}
+
+.register-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 60px;
+  font-family: Arial, sans-serif;
+}
+
+.register-container h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  background: #f9f9f9;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.register-form input {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.register-form input:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.register-form button {
+  background: black;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.3s ease;
+}
+
+.register-form button:hover {
+  background:  #f5ba13;
 }
