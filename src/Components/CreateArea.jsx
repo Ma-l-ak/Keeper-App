@@ -23,13 +23,13 @@ function CreateArea(props) {
 
 async function submitNote(event) {
     event.preventDefault();
-    if (!props.userId) return;
+    if (!props.token) return;
     try {
-      const res = await axios.post("http://localhost:5000/notes", {
-        userId: props.userId,
-        title: note.title,
-        content: note.content
-      });
+      const res = await axios.post(
+        "http://localhost:5000/notes", 
+        { title: note.title, content: note.content},
+        {headers: { Authorization: `Bearer ${props.token}` }}
+    );
       props.onAdd(res.data);
       setNote({ title: "", content: "" });
     } catch (err) {
