@@ -8,6 +8,7 @@ function LoginPage() {
   const { setUser } = useAuth(); 
   const [error, setError] = useState("");
   const[userData,setUserData]=useState({email:"",password:""});
+  
 
   const handleChange=(event)=>{
     const {name,value}=event.target;
@@ -22,7 +23,10 @@ function LoginPage() {
      event.preventDefault();
       try {
       const res = await axios.post("http://localhost:5000/login", userData);
-      setUser(res.data.user); 
+      // setUser(res.data.user); 
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      window.dispatchEvent(new Event("storage"));
       setUserData({ email: "", password: "" }); 
       navigate("/mynotes");
     } catch (err) {

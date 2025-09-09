@@ -1,9 +1,20 @@
 import HighlightIcon from "@mui/icons-material/Highlight";
 import { Link } from "react-router-dom";
-import { useAuth } from "../Context/AuthContext";
+// import { useAuth } from "../Context/AuthContext";
+import { useState, useEffect } from "react";
 
 function Header() {
-  const { user} = useAuth();
+  // const { user} = useAuth();
+   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+  //  const user = JSON.parse(localStorage.getItem("user")) || null;
+   useEffect(() => {
+    const handleStorageChange = () => {
+      setUser(JSON.parse(localStorage.getItem("user")));
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
+
   return (
     <header>
       <nav className="nav-links">
@@ -17,7 +28,12 @@ function Header() {
           <>
             <Link to="/mynotes">{user.name || "Profile"}</Link>
             <span className="separator">|</span>
-            <Link to="/logout">Logout</Link> 
+            <Link to="/logout" onClick={() => {
+                localStorage.removeItem("user");
+                localStorage.removeItem("token");
+                setUser(null); // immediate update
+              }}>Logout</Link> 
+            
           </>
         ) : (
           <>

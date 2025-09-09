@@ -4,14 +4,14 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import pg from "pg";
 import env from "dotenv";
-
+import jwt from "jsonwebtoken";
 const app = express();
 env.config();
 
 const PORT = 5000;
 const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
-
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(bodyParser.json());
 
 const db = new pg.Client({
@@ -25,6 +25,26 @@ const db = new pg.Client({
 db.connect()
   .then(() => console.log("Connected to PostgreSQL"))
   .catch((err) => console.error("Connection error", err.stack));
+  
+function generateToken(user) {
+  return jwt.sign(
+    { id: user.id, email: user.email, name: user.name },
+    JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+}
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "Access denied. No token." });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: "Invalid token" });
+    req.user = user; 
+    next();
+  });
+}
 
 app.post("/login", async (req, res) => {
   const email = req.body.email;
@@ -39,10 +59,8 @@ app.post("/login", async (req, res) => {
       if (!validPassword) {
         return res.status(401).json({ message: "Incorrect password" });
       }
-      res.json({
-        message: "Login successful",
-        user: { id: user.id, name: user.name, email: user.email },
-      });
+      const token = generateToken(user);
+      res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
     } else {
       res.status(404).json({ message: "User not found" });
     }
@@ -70,12 +88,15 @@ app.post("/register", async (req, res) => {
         if (err) {
           console.error("Error hashing password:", err);
         } else {
-          console.log("Hashed Password:", hash);
-          await db.query(
-            "INSERT INTO users (name, email, password) VALUES ($1, $2, $3)",
+          const result = await db.query(
+            "INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *",
             [name, email, hash]
           );
-          res.status(201).json({ message: "User registered successfully!" });
+          //console.log("Register response user:", result.rows[0]);
+          //res.status(201).json({ message: "User registered successfully!", user: result.rows[0] });
+          const user = result.rows[0];
+          const token = generateToken(user);
+          res.status(201).json({ token, user: { id: user.id, name: user.name, email: user.email } });
         }
       });
     }
@@ -84,12 +105,13 @@ app.post("/register", async (req, res) => {
     res.status(500).json({ message: "Error registering user" });
   }
 });
-app.post("/notes", async (req, res) => {
-  const { userId, title, content } = req.body;
+app.post("/notes", authenticateToken,async (req, res) => {
+   console.log("Decoded user from token:", req.user);
+  const { title, content } = req.body;
   try {
     const result = await db.query(
       "INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3) RETURNING *",
-      [userId, title, content]
+      [req.user.id, title, content]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -97,11 +119,10 @@ app.post("/notes", async (req, res) => {
     res.status(500).json({ message: "Error adding note" });
   }
 });
-app.get("/notes/:userId", async (req, res) => {
-  const userId = req.params.userId;
+app.get("/notes",authenticateToken, async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM notes WHERE user_id = $1", [
-      userId,
+      req.user.id,
     ]);
     res.json(result.rows);
   } catch (err) {
@@ -109,10 +130,10 @@ app.get("/notes/:userId", async (req, res) => {
     res.status(500).json({ message: "Error fetching notes" });
   }
 });
-app.delete("/notes/:id", async (req, res) => {
+app.delete("/notes/:id",authenticateToken, async (req, res) => {
   const noteId = req.params.id;
   try {
-    await db.query("DELETE FROM notes WHERE id = $1", [noteId]);
+    await db.query("DELETE FROM notes WHERE id = $1 AND user_id = $2", [noteId, req.user.id]);
     res.json({ message: "Note deleted" });
   } catch (err) {
     console.error(err);
@@ -120,7 +141,7 @@ app.delete("/notes/:id", async (req, res) => {
   }
 });
 
-app.put("/notes/:id", async (req, res) => {
+app.put("/notes/:id", authenticateToken,async (req, res) => {
   const noteId = req.params.id;
   const { title, content } = req.body;
   console.log(
@@ -128,15 +149,14 @@ app.put("/notes/:id", async (req, res) => {
   );
   try {
     const result = await db.query(
-      "UPDATE notes SET title = $1, content = $2 WHERE id = $3 RETURNING *",
-      [title, content, noteId]
+      "UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *",
+      [title, content, noteId, req.user.id]
     );
-    res.json(result.rows[0]);
-    //console.log("Note updated:", result.rows[0]);
+    //res.json(result.rows[0]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Note not found" });
     }
-    res.json(result.rows[0]); 
+    res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error updating note" });
